@@ -24,7 +24,7 @@ int main (void) {
 
     char dim_buffer[MATRIX_DIM_FORMAT + 1 + 1]; // leave space for newline and terminating character so that it doesn't sit in stdin
 
-    fgets(dim_buffer, sizeof(dim_buffer), stdin);
+    fgets(dim_buffer, sizeof(dim_buffer), stdin); // replace this with get size which reads and parses 
 
     const size_t nrows = char_to_int(dim_buffer[0]), ncols = char_to_int(dim_buffer[2]);
 
