@@ -61,3 +61,6 @@ NOTES.txt
 
 # mac finder tracker
 *.DS_Store
+
+# tesing files
+/test/test_results

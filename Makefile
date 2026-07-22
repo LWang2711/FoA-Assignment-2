@@ -4,6 +4,8 @@ FLAGS = -g -Wall -Wpedantic -Wextra -Werror
 PROG ?= a2
 EXE = build/$(PROG)
 
+.PHONY: all % run clean test
+
 all: $(EXE)
 	@:
 

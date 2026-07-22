@@ -10,34 +10,45 @@ struct non_zero_value {
 
 struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz);
 void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non_zerov2);
-void insertion_sort_non_zero(struct non_zero_value non_zero[], size_t nnz);
-void print_matrix(size_t nrows, size_t ncols, struct non_zero_value non_zero[]);
-void print_stage_header(int stage);
+void insertion_sort_non_zero(struct non_zero_value non_zero[], const size_t nnz);
+void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_value non_zero[], const size_t nnz);
+void print_stage_header(const size_t stage);
+void print_delimiter(void);
 int char_to_int(char character);
 
 int main (void) {
     
     enum { MATRIX_DIM_FORMAT = 3 };
 
-    char dim_buffer[MATRIX_DIM_FORMAT + 1];
+    char dim_buffer[MATRIX_DIM_FORMAT + 1 + 1]; // leave space for newline and terminating character so that it doesn't sit in stdin
 
     fgets(dim_buffer, sizeof(dim_buffer), stdin);
 
-    struct non_zero_value *non_zeros_initial = malloc(0);
+    const size_t nrows = char_to_int(dim_buffer[0]), ncols = char_to_int(dim_buffer[2]);
 
-    size_t nnz = 0;
+    struct non_zero_value *non_zeros_initial = malloc(0), *non_zero_target = malloc(0);
 
-    non_zeros_initial = populate_non_zero(non_zeros_initial, &nnz);
+    size_t nnz_i = 0, nnz_t = 0;
+
+    non_zeros_initial = populate_non_zero(non_zeros_initial, &nnz_i);
+
+    non_zero_target = populate_non_zero(non_zero_target, &nnz_t);
 
     print_stage_header(0);
 
-    printf("Initial matrix: %s, nnz=%lu\n", dim_buffer, nnz);
+    printf("Initial matrix: %.*s, nnz=%zu\n", MATRIX_DIM_FORMAT, dim_buffer, nnz_i);
 
-    insertion_sort_non_zero(non_zeros_initial, nnz);
+    insertion_sort_non_zero(non_zeros_initial, nnz_i);
 
-    print_matrix(char_to_int(dim_buffer[0]), char_to_int(dim_buffer[2]), non_zeros_initial);
+    print_matrix(nrows, ncols, non_zeros_initial, nnz_i);
 
-    // repeat the exact same thing for the target matrix
+    print_delimiter();
+
+    printf("Target matrix: %.*s, nnz=%zu\n", MATRIX_DIM_FORMAT ,dim_buffer, nnz_t);
+
+    insertion_sort_non_zero(non_zero_target, nnz_t);
+
+    print_matrix(nrows, ncols, non_zero_target, nnz_t);
 
     return 0;
 }
@@ -57,9 +68,7 @@ struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t
 
     enum { NON_ZERO_VALUE_FORMAT = 5 };
 
-    char nz_buffer_str[NON_ZERO_VALUE_FORMAT + 1 + 1]; // need one extra character for the newline and terminating characters
-
-    fgets(nz_buffer_str, sizeof(nz_buffer_str), stdin); // need to check whether initial line is already terminated
+    char nz_buffer_str[NON_ZERO_VALUE_FORMAT + 1 + 1]; // need one extra character for the newline and terminating character
 
     for (;;) {
         fgets(nz_buffer_str, sizeof(nz_buffer_str), stdin);
@@ -100,10 +109,10 @@ parameters:
     non_zero which is the array containing the non-zero values.
     nnz which is the length of the array containing non-zero values.
 */
-void insertion_sort_non_zero(struct non_zero_value non_zero[], size_t nnz) {
+void insertion_sort_non_zero(struct non_zero_value non_zero[], const size_t nnz) {
     for (size_t element_ind = 0; element_ind < nnz; element_ind++) { // sort through through each element of the array
-        for (int left_ind = element_ind;
-             left_ind >= 0 &&
+        for (size_t left_ind = element_ind;
+             left_ind >= 0 && left_ind <= nnz - 1 - 1 &&
               non_zero[left_ind].row >= non_zero[left_ind + 1].row;
                left_ind--) { // for each element, look at all of the elements to the left of the target element to be sorted
                 if (non_zero[left_ind].row > non_zero[left_ind + 1].row) {
@@ -130,14 +139,15 @@ void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non
     *non_zerov2 = non_zero_buffer;
 }
 
-void print_matrix(size_t nrows, size_t ncols, struct non_zero_value non_zero[]) {
+void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_value non_zero[], const size_t nnz) {
     size_t non_zero_ind = 0;
 
     for (size_t row = 0; row < nrows; row++) {
         printf("[");
 
         for (size_t col = 0; col < ncols; col++) {
-            if (row == non_zero[non_zero_ind].row &&
+            if (non_zero_ind <= nnz &&
+                row == non_zero[non_zero_ind].row &&
                 col == non_zero[non_zero_ind].col
             ) {
                 printf("%d", non_zero[non_zero_ind].value);
@@ -154,12 +164,24 @@ void print_matrix(size_t nrows, size_t ncols, struct non_zero_value non_zero[]) 
 /* 
 prints the header for each stage given the level as an int.
 */
-void print_stage_header(int stage) {
+void print_stage_header(const size_t stage) {
     enum { END_HEADER_LENGTH = 28};
 
-    printf("==STAGE %d", stage);
-    for (int i = 0; i < END_HEADER_LENGTH - 1; i++) {
+    printf("==STAGE %zu", stage);
+    for (size_t i = 0; i < END_HEADER_LENGTH; i++) {
         printf("=");
+    }
+    printf("\n");
+}
+
+/* 
+prints the delimiter which clearly separates each of the matrices.
+*/
+void print_delimiter(void) {
+    enum { DELIMITER_LENGTH = 37 };
+    
+    for (size_t i = 0; i < DELIMITER_LENGTH; i++) {
+        printf("-");
     }
     printf("\n");
 }
