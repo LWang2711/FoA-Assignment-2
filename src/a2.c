@@ -9,6 +9,7 @@ struct non_zero_value {
     int value;
 };
 
+void read_dim(size_t *nrow, size_t *ncol);
 struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz);
 void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non_zerov2);
 void insertion_sort_non_zero(struct non_zero_value non_zero[], const size_t nnz);
@@ -19,14 +20,9 @@ int char_to_int(char character);
 bool is_valid_value(int value);
 
 int main (void) {
-    
-    enum { MATRIX_DIM_FORMAT = 3 };
+    size_t nrows, ncols;
 
-    char dim_buffer[MATRIX_DIM_FORMAT + 1 + 1]; // leave space for newline and terminating character so that it doesn't sit in stdin
-
-    fgets(dim_buffer, sizeof(dim_buffer), stdin); // replace this with get size which reads and parses 
-
-    const size_t nrows = char_to_int(dim_buffer[0]), ncols = char_to_int(dim_buffer[2]);
+    read_dim(&nrows, &ncols);
 
     struct non_zero_value *non_zeros_initial = malloc(0), *non_zero_target = malloc(0);
 
@@ -38,7 +34,7 @@ int main (void) {
 
     print_stage_header(0);
 
-    printf("Initial matrix: %.*s, nnz=%zu\n", MATRIX_DIM_FORMAT, dim_buffer, nnz_i);
+    printf("Initial matrix: %zux%zu, nnz=%zu\n", nrows, ncols, nnz_i);
 
     insertion_sort_non_zero(non_zeros_initial, nnz_i);
 
@@ -46,13 +42,44 @@ int main (void) {
 
     print_delimiter();
 
-    printf("Target matrix: %.*s, nnz=%zu\n", MATRIX_DIM_FORMAT ,dim_buffer, nnz_t);
+    printf("Target matrix: %zux%zu, nnz=%zu\n", nrows, ncols, nnz_t);
 
     insertion_sort_non_zero(non_zero_target, nnz_t);
 
     print_matrix(nrows, ncols, non_zero_target, nnz_t);
 
     return 0;
+}
+
+/* 
+reads and parses the string input of matrix dimensions from stdin into unsigned long form and
+stores it into number of rows and columns.
+
+parameters:
+    nrow and ncol are pointers to the size_t number of rows and columns of a matrix.
+*/
+void read_dim(size_t *nrow, size_t *ncol) {
+    int curr_char; // if using getchar(), must use int since need to return EOF code just in case
+
+    *nrow = 0, *ncol = 0;
+
+    while ((curr_char = getchar()) != EOF) {
+
+        if (curr_char == 'x') {
+            break;
+        }
+
+        *nrow = *nrow * 10 + curr_char - '0'; // tallying up via individual digits formula
+    }
+
+    while ((curr_char = getchar()) != EOF) {
+
+        if (curr_char == '\n') {
+            break;; // although we don't want the newline nor the terminating character, we want to read it so that it is not in the stdin buffer
+        }
+
+        *ncol = *ncol * 10 + curr_char - '0';
+    }
 }
 
 /* 
