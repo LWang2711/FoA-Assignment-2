@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 struct non_zero_value {
     size_t row;
@@ -15,6 +16,7 @@ void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_
 void print_stage_header(const size_t stage);
 void print_delimiter(void);
 int char_to_int(char character);
+bool is_valid_value(int value);
 
 int main (void) {
     
@@ -142,22 +144,41 @@ void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non
 void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_value non_zero[], const size_t nnz) {
     size_t non_zero_ind = 0;
 
-    for (size_t row = 0; row < nrows; row++) {
-        printf("[");
+    enum { MAX_DIM = 35 };
 
-        for (size_t col = 0; col < ncols; col++) {
-            if (non_zero_ind <= nnz &&
-                row == non_zero[non_zero_ind].row &&
-                col == non_zero[non_zero_ind].col
-            ) {
-                printf("%d", non_zero[non_zero_ind].value);
-                non_zero_ind++;
-            } else {
-                printf(" ");
-            }
+    bool has_valid_values = true;
+
+    for (size_t nz_ind = 0; nz_ind < nnz; nz_ind++) {
+        if (!is_valid_value(non_zero[nz_ind].value)) {
+            has_valid_values = false; 
         }
+    }
 
-        printf("]\n");
+    if (nrows <= MAX_DIM && ncols <= MAX_DIM && has_valid_values) { // if within the allowed matrix size and all values are allowed
+        for (size_t row = 0; row < nrows; row++) {
+            printf("[");
+
+            for (size_t col = 0; col < ncols; col++) {
+                if (non_zero_ind <= nnz &&
+                    row == non_zero[non_zero_ind].row &&
+                    col == non_zero[non_zero_ind].col
+                ) { if (non_zero[non_zero_ind].value == 0) { // in case the user enters 0 as a non-zero value
+                    printf(" ");
+                } else {
+                    printf("%d", non_zero[non_zero_ind].value);
+                }
+                non_zero_ind++;
+                 } else {
+                    printf(" ");
+                }
+            }
+
+            printf("]\n");
+        }
+    } else { // if the matrix is too large or if there exists a non-allowed value
+        for (size_t nz_ind = 0; nz_ind < nnz; nz_ind++) {
+            printf("(%zu, %zu)=%d\n", non_zero[nz_ind].row, non_zero[nz_ind].col, non_zero[nz_ind].value);
+        }
     }
 }
 
@@ -191,4 +212,20 @@ turns a singular char represented integer into its corresponding int represented
 */
 int char_to_int(char character) {
     return character - '0';
+}
+
+/* 
+check whether a non-zero value's int value is within the valid allowed value bounds
+*/
+bool is_valid_value(int value) {
+    int valid_values[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
+
+    size_t nvalid_values = sizeof(valid_values) / sizeof(valid_values[0]);
+
+    for (size_t i = 0; i < nvalid_values; i++) {
+        if (value == valid_values[i]) {
+            return true;
+        }
+    }
+    return false;
 }

@@ -43,6 +43,8 @@ build/
 *.su
 *.idb
 *.pdb
+.vscode/*
+!.vscode/launch.json
 
 # Kernel Module Compile Results
 *.mod*
