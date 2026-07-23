@@ -19,6 +19,12 @@ void print_stage_header(const size_t stage);
 void print_delimiter(void);
 int char_to_int(char character);
 bool is_valid_value(int value);
+bool is_equal_matrices(
+    const struct non_zero_value m1[],
+    const struct non_zero_value m2[],
+    const size_t nnz1,
+    const size_t nnz2
+);
 
 int main (void) {
     size_t nrows, ncols;
@@ -51,7 +57,7 @@ int main (void) {
 
     print_stage_header(1);
 
-
+    // call active ope
 
     return 0;
 }
@@ -197,19 +203,25 @@ parameters:
 */
 void insertion_sort_non_zero(struct non_zero_value non_zero[], const size_t nnz) {
     for (size_t element_ind = 0; element_ind < nnz; element_ind++) { // sort through through each element of the array
+        
         for (size_t left_ind = element_ind;
              left_ind >= 0 && left_ind <= nnz - 1 - 1 &&
               non_zero[left_ind].row >= non_zero[left_ind + 1].row;
                left_ind--) { // for each element, look at all of the elements to the left of the target element to be sorted
+                
                 if (non_zero[left_ind].row > non_zero[left_ind + 1].row) {
+                    
                     non_zero_swap(&non_zero[left_ind], &non_zero[left_ind + 1]); // swap in case of rows out of order
+                
                 } else if (non_zero[left_ind].row == non_zero[left_ind + 1].row){
+                    
                     if (non_zero[left_ind].col > non_zero[left_ind + 1].col) { // swap in case of cols out of order given the rows are the same
+                        
                         non_zero_swap(&non_zero[left_ind], &non_zero[left_ind + 1]);
                     }
                 }
-               }
-    }
+            }
+        }
 }
 
 /* 
@@ -225,6 +237,18 @@ void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non
     *non_zerov2 = non_zero_buffer;
 }
 
+
+/* 
+prints the matrix based on the dimensions of the matrix and how many and what the non-zero values in that matrix are.
+
+note: will print the full matrix for row and column sizes at or smaller than 35 units and must have all non-zero
+values  
+
+parameters:
+    nrows and ncols are the row and column dimensions of the matrix respectively.
+    non_zero is the array containing all of the non-zero entires as structs.
+    nnz is how many non-zero values are present in the matrix.
+*/
 void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_value non_zero[], const size_t nnz) {
     size_t non_zero_ind = 0;
 
@@ -267,7 +291,7 @@ void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_
 }
 
 /* 
-prints the header for each stage given the level as an int.
+prints the header for each stage given the level as an unsinged long.
 */
 void print_stage_header(const size_t stage) {
     enum { END_HEADER_LENGTH = 28};
@@ -313,3 +337,30 @@ bool is_valid_value(int value) {
     }
     return false;
 }
+
+/* 
+checks whether or not two matrices represented in non-zero sparse form are exactly equal.
+
+parameters:
+    m1 and m2 are arrays containing the non-zero values of the two matrices to be comapred in sparse form.
+    nnz1 and nnz2 are the number of non-zero values 
+*/
+bool is_equal_matrices(
+    const struct non_zero_value m1[],
+    const struct non_zero_value m2[],
+    const size_t nnz1,
+    const size_t nnz2) {
+
+        if (nnz1 != nnz2) {
+            return false;
+        }
+
+        for (size_t nz_ind = 0; nz_ind < nnz1; nz_ind++) {
+            if (m1[nz_ind].row != m2[nz_ind].row ||
+                m1[nz_ind].col != m2[nz_ind].col ||
+                m1[nz_ind].value != m2[nz_ind].value) {
+                    return false;
+                }
+            }
+            return true;
+        }
