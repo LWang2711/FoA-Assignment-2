@@ -11,6 +11,7 @@ struct non_zero_value {
 
 void read_dim(size_t *nrow, size_t *ncol);
 struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz);
+bool read_nz_line(size_t *prow_num, size_t *pcol_num, long *pval);
 void non_zero_swap(struct non_zero_value *non_zerov1, struct non_zero_value *non_zerov2);
 void insertion_sort_non_zero(struct non_zero_value non_zero[], const size_t nnz);
 void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_value non_zero[], const size_t nnz);
@@ -47,6 +48,10 @@ int main (void) {
     insertion_sort_non_zero(non_zero_target, nnz_t);
 
     print_matrix(nrows, ncols, non_zero_target, nnz_t);
+
+    print_stage_header(1);
+
+
 
     return 0;
 }
@@ -93,62 +98,14 @@ parameters:
 returns:
     same pointer to dynamically allocated array to which it was initially passed.
 */
-struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz) {
-    bool reached_end = false;
+struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz) {;
 
     for (;;) {
-        int curr_char;
-        
         size_t row_num = 0, col_num = 0;
         long value = 0;
-        bool value_is_neg = false;
 
-        // bit of repetitive logic here, could use function to read until a specified terminating character
-        // until a stirng literal is provided
-
-        while ((curr_char = getchar()) != EOF) { // read the row number
-            if (curr_char == '#') {
-                reached_end = true;
-                getchar(); // get rid of the terminating character at the end of line for next matrix reading
-                break;
-            }
-
-            if (curr_char == ',') {
-                break;
-            }
-            
-            row_num = row_num * 10 + curr_char - '0';
-        }
-
-        if (reached_end) {
+        if (!read_nz_line(&row_num, &col_num, &value)) {
             break;
-        }
-
-        while ((curr_char = getchar()) != EOF) { // read the column number
-            
-            if (curr_char == ',') {
-                break;
-            }
-            
-            col_num = col_num * 10 + curr_char - '0';
-        }
-
-        while ((curr_char = getchar()) != EOF) { // read the value
-            
-            if (curr_char == '\n') {
-                break;
-            }
-
-            if (curr_char == '-') {
-                value_is_neg = true;
-                continue;
-            }
-            
-            value = value * 10 + curr_char - '0';
-        }
-
-        if (value_is_neg) {
-            value = -value;
         }
 
         (*p_nnz)++;
@@ -173,6 +130,61 @@ struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t
     }
 
     return non_zero; // pointer to pointer here might be better, although this still works
+}
+
+/* 
+reads a standard line in the format of r,c,v for non-zero values into the value of whatever addresses are provided
+
+parameters:
+    prow_num and pcol_num are pointers to the row and column respectively at which the non-zero value is located
+    in the matrix.
+    pval is a pointer to the value of the non-zero entry in the matrix.
+*/
+bool read_nz_line(size_t *prow_num, size_t *pcol_num, long *pval) {
+    int curr_char;
+
+    bool value_is_neg = false;
+
+    while ((curr_char = getchar()) != EOF) { // read the row number
+        if (curr_char == '#') {
+            getchar(); // get rid of the terminating character at the end of line for next matrix reading
+            return false;
+        }
+
+        if (curr_char == ',') {
+            break;
+        }
+            
+        *prow_num = *prow_num * 10 + curr_char - '0';
+    }
+
+    while ((curr_char = getchar()) != EOF) { // read the column number
+            
+        if (curr_char == ',') {
+            break;
+        }
+            
+        *pcol_num = *pcol_num * 10 + curr_char - '0';
+        }
+
+    while ((curr_char = getchar()) != EOF) { // read the value
+            
+        if (curr_char == '\n') {
+            if (value_is_neg) {
+                *pval = -*pval;
+            }
+            return true;
+        }
+
+        if (curr_char == '-') {
+            value_is_neg = true;
+            continue; // in case of running into negative sign, save info but skip the rest of the loop
+        }
+            
+        *pval = *pval * 10 + curr_char - '0';
+    }
+
+    return false;
 }
 
 /* 
