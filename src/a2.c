@@ -6,7 +6,7 @@
 struct non_zero_value {
     size_t row;
     size_t col;
-    int value;
+    long value;
 };
 
 void read_dim(size_t *nrow, size_t *ncol);
@@ -94,24 +94,69 @@ returns:
     same pointer to dynamically allocated array to which it was initially passed.
 */
 struct non_zero_value *populate_non_zero(struct non_zero_value *non_zero, size_t *p_nnz) {
-
-    enum { NON_ZERO_VALUE_FORMAT = 5 };
-
-    char nz_buffer_str[NON_ZERO_VALUE_FORMAT + 1 + 1]; // need one extra character for the newline and terminating character
+    bool reached_end = false;
 
     for (;;) {
-        fgets(nz_buffer_str, sizeof(nz_buffer_str), stdin);
+        int curr_char;
         
-        if (nz_buffer_str[0] == '#') {
+        size_t row_num = 0, col_num = 0;
+        long value = 0;
+        bool value_is_neg = false;
+
+        // bit of repetitive logic here, could use function to read until a specified terminating character
+        // until a stirng literal is provided
+
+        while ((curr_char = getchar()) != EOF) { // read the row number
+            if (curr_char == '#') {
+                reached_end = true;
+                getchar(); // get rid of the terminating character at the end of line for next matrix reading
+                break;
+            }
+
+            if (curr_char == ',') {
+                break;
+            }
+            
+            row_num = row_num * 10 + curr_char - '0';
+        }
+
+        if (reached_end) {
             break;
+        }
+
+        while ((curr_char = getchar()) != EOF) { // read the column number
+            
+            if (curr_char == ',') {
+                break;
+            }
+            
+            col_num = col_num * 10 + curr_char - '0';
+        }
+
+        while ((curr_char = getchar()) != EOF) { // read the value
+            
+            if (curr_char == '\n') {
+                break;
+            }
+
+            if (curr_char == '-') {
+                value_is_neg = true;
+                continue;
+            }
+            
+            value = value * 10 + curr_char - '0';
+        }
+
+        if (value_is_neg) {
+            value = -value;
         }
 
         (*p_nnz)++;
 
-        struct non_zero_value nz_buffer_int = {
-            .row = char_to_int(nz_buffer_str[0]),
-            .col = char_to_int(nz_buffer_str[2]),
-            .value = char_to_int(nz_buffer_str[4])
+        struct non_zero_value nz_buffer_int = { // cast just in case of compiler conversion
+            .row = (size_t) row_num,
+            .col = (size_t) col_num,
+            .value = (long) value
         };
 
         struct non_zero_value *temp = realloc(non_zero, sizeof(nz_buffer_int) * (*p_nnz));
@@ -192,7 +237,7 @@ void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_
                 ) { if (non_zero[non_zero_ind].value == 0) { // in case the user enters 0 as a non-zero value
                     printf(" ");
                 } else {
-                    printf("%d", non_zero[non_zero_ind].value);
+                    printf("%ld", non_zero[non_zero_ind].value);
                 }
                 non_zero_ind++;
                  } else {
@@ -204,7 +249,7 @@ void print_matrix(const size_t nrows, const size_t ncols, const struct non_zero_
         }
     } else { // if the matrix is too large or if there exists a non-allowed value
         for (size_t nz_ind = 0; nz_ind < nnz; nz_ind++) {
-            printf("(%zu, %zu)=%d\n", non_zero[nz_ind].row, non_zero[nz_ind].col, non_zero[nz_ind].value);
+            printf("(%zu, %zu)=%ld\n", non_zero[nz_ind].row, non_zero[nz_ind].col, non_zero[nz_ind].value);
         }
     }
 }

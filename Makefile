@@ -4,13 +4,9 @@ FLAGS = -g -Wall -Wpedantic -Wextra -Werror
 PROG ?= a2
 EXE = build/$(PROG)
 
-.PHONY: all % run clean test
+.PHONY: all run clean test
 
 all: $(EXE)
-	@:
-
-%: build/%
-	@:
 
 build/%: src/%.c
 	mkdir -p build
