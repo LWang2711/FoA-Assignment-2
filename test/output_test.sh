@@ -7,10 +7,10 @@ is_failed=0
 for test_number in 0 1 2
 do
     actual="test/test_results/test${test_number}_actual.txt"
-    expected="expected_outputs/test${test_number}_out.txt"
+    expected="expected_output/test${test_number}_out.txt"
 
     ./build/a2 \
-        < "inputs/test${test_number}.txt" \
+        < "input/test${test_number}.txt" \
         > "$actual"
 
     if diff -u "${expected}" "${actual}" # returns 0 if nothing is different and 1 if different and greater than 2 if error

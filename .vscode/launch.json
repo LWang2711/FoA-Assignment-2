@@ -10,7 +10,7 @@
             "cwd": "${workspaceRoot}",
             "terminal": "integrated",
             "stdio" : [
-                "${workspaceFolder}/inputs/test2.txt",
+                "${workspaceFolder}/inputs/test0.txt",
                 null,
                 null
             ]
