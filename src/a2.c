@@ -4,17 +4,6 @@
 #include "matrix.h"
 #include "format.h"
 
-/*
-bool is_equal_matrices(
-    const struct non_zero_value m1[],
-    const struct non_zero_value m2[],
-    const size_t nnz1,
-    const size_t nnz2
-); // helper matrix in future
-bool is_later_inmat(const struct non_zero_value test, const struct non_zero_value ref); // matrix helper in future
-bool is_valid_operation(const char op); // matrix helper in future
-*/
-
 int main (void) {
     size_t nrows, ncols;
 
